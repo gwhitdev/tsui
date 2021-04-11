@@ -1,0 +1,24 @@
+﻿@model tsui.Models.UserViewModel;
+@{
+    List<string> users = Model.UserIds;
+}
+
+@if (users.Count > 0)
+{
+    <div>
+        We have users!
+        <p>
+            @foreach(var u in users)
+                {
+                    <ul>
+                        <li>@u</li>
+                    </ul>
+                }
+        </p>
+    </div>
+}
+
+else
+{
+    <div>No users</div>
+}

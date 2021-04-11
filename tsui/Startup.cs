@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Net.Http.Headers;
 using tsui.Support;
 using Microsoft.AspNetCore.Http;
+using tsui.Services;
+using tsui.Interfaces;
 
 namespace tsui
 {
@@ -105,14 +107,14 @@ namespace tsui
                     }
                 };
             });
-           /* services.AddHttpClient<IIngredientService, IngredientHttpService>(
+           services.AddHttpClient("timesharerapiServiceClient",
                 client =>
                 {
-                    client.BaseAddress = new Uri("https://familymealsapi.azurewebsites.net/api/");
-                    client.DefaultRequestHeaders.Add("User-Agent", "MealSaverApp");
+                    client.BaseAddress = new Uri("https://timesharerapi.azurewebsites.net/api/");
+                    client.DefaultRequestHeaders.Add("User-Agent", "tsui");
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 });
-            */
+            services.AddScoped<IUserService, UserService>();
             services.AddControllersWithViews();
         }
 
