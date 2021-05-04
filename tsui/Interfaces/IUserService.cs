@@ -7,9 +7,9 @@ namespace tsui.Interfaces
 {
     public interface IUserService
     {
-        public Task<List<UserDataModel>> GetAllUsers();
-        //public UserDataModel GetUser();
-        //public bool CreateUser();
+        public Task<List<UserDataModel>> GetAllUsersAsync();
+        public Task<List<UserDataModel>> GetUserAsync(string userId);
+        public bool CreateUser();
         //public bool UpdateUser();
         //public bool DeleteUser();
     }

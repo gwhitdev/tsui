@@ -1,10 +1,16 @@
-﻿using System;
+﻿using System.Collections.Generic;
+
 namespace tsui.DataModels
 {
-    public class OpportunityDataModel
+    public class OpportunityDataModel : BaseDataModel
     {
-        public OpportunityDataModel()
-        {
-        }
+        public OpportunityDetails Details { get; set; }
+    }
+    public class OpportunityDetails 
+    {
+        public string Title { get; set; }
+        public bool Live { get; set; }
+        public string Town { get; set; }
+        public List<string> AssignedVolunteers { get; set; }
     }
 }

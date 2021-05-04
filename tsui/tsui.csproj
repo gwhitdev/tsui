@@ -46,4 +46,9 @@
     <Folder Include="Services\" />
     <Folder Include="Views\Users\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\tsui.Library\tsui.Library.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

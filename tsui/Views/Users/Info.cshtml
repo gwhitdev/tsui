@@ -1,0 +1,13 @@
+﻿@model  tsui.Models.UserViewModel;
+@{
+    string id = Model.Id;
+    DateTime updatedAt = Model.UpdatedAt;
+}
+
+@if (!Model.Id.Equals(null))
+            {
+                <ul>
+                    <li>User ID: @id</li>
+                    <li>User updated at: @updatedAt</li>
+                </ul>
+            }

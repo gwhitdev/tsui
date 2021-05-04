@@ -1,10 +1,12 @@
-﻿using System;
-namespace tsui.DataModels
+﻿namespace tsui.DataModels
 {
-    public class VolunteerDataModel
+    public class VolunteerDataModel : BaseDataModel
     {
-        public VolunteerDataModel()
-        {
-        }
+        public VolunteerDetails Details { get; set; }
+    }
+    public class VolunteerDetails 
+    {
+        public string AssociatedUserId { get; set; }
+        public string Name { get; set; }
     }
 }

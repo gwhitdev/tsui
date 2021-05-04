@@ -4,9 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 using tsui.Models;
 using tsui.Interfaces;
 using tsui.DataModels;
+using Microsoft.AspNetCore.Authentication;
+using System.Globalization;
 
 namespace tsui.Controllers
 {
@@ -14,6 +17,7 @@ namespace tsui.Controllers
     {
         private readonly IUserService _userService;
         private readonly ILogger _logger;
+        private string AccessToken { get; set; }
 
         public UsersController(ILoggerFactory loggerFactory, IUserService userService)
         {
@@ -21,10 +25,17 @@ namespace tsui.Controllers
             _logger = loggerFactory.CreateLogger<UsersController>();
         }
 
-        // GET: /<controller>/
+        public async void GetAccessToken()
+        {
+            AccessToken = await HttpContext.GetTokenAsync("access_token");
+        }
+
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Index()
         {
-            List<UserDataModel> users = await _userService.GetAllUsers();
+            var createLocalUserIfNotExists = await _userService.CreateUser(User.Identity.)
+
+            List<UserDataModel> users = await _userService.GetAllUsersAsync();
 
             UserViewModel userViewModel = new()
             {
@@ -49,6 +60,38 @@ namespace tsui.Controllers
                 }
             }
             return View(userViewModel);
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpGet]
+        [Route("/Users/{userId}")]
+        public async Task<IActionResult> Info(string userId)
+        {
+            if (!User.Identity.IsAuthenticated) throw new UnauthorizedAccessException();
+
+            GetAccessToken();
+            UserViewModel userViewModel = new();
+
+            try
+            {
+                _logger.LogInformation("Trying to get user information...");
+                var userData =  await _userService.GetUserAsync(userId);
+                foreach(var d in userData)
+                {
+                    userViewModel.Id = d.Id;
+                    userViewModel.UpdatedAt = d.UpdatedAt;
+                }
+                _logger.LogInformation("Successfully requested user info.");
+                return View(userViewModel);
+                
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+
+            return View(userViewModel);
+
         }
     }
 }

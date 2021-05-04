@@ -11,7 +11,7 @@
             @foreach(var u in users)
                 {
                     <ul>
-                        <li>@u</li>
+                        <li><a href="/Users/@u">@u</a> <a href="/Users/@u/Delete" class="btn btn-sm btn-danger">Delete</a></li>
                     </ul>
                 }
         </p>
