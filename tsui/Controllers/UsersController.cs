@@ -33,8 +33,8 @@ namespace tsui.Controllers
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> Index()
         {
-            var createLocalUserIfNotExists = await _userService.CreateUser(User.Identity.)
-
+            var userId = User.Identity.Name;
+            var createLocalUserIfNotExists = await _userService.CreateUser(AccessToken, userId);
             List<UserDataModel> users = await _userService.GetAllUsersAsync();
 
             UserViewModel userViewModel = new()

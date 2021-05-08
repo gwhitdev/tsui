@@ -13,6 +13,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using tsui.Library;
 using static tsui.Library.ServiceRequestHelpers;
+using System.Net.Http.Headers;
 
 namespace tsui.Services
 {
@@ -87,11 +88,42 @@ namespace tsui.Services
 
             return userList;
         }
-
-        public bool CreateUser(string accessToken)
+        private async Task<bool> CheckIfUserExists(string userId)
         {
+            List<UserDataModel> exists = new();
+            try
+            {
+                exists = await GetUserAsync(userId);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError("Error: ", ex.Message);
+            }
+            if (exists.Count == 1) return true;
+            return false;
+        }
 
-            var exists = GetUsersAsync()
+        public async Task<bool> CreateUser(string accessToken, string userId)
+        {
+            bool exists = await CheckIfUserExists(userId);
+            
+            if (!exists)
+            {
+                try
+                {
+                    var request = CreatePostRequestObject($"users/{userId}");
+                    var client = _timesharerapiClientFactory.CreateClient("timesharerapiServiceClient");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    var response = await client.SendAsync(request);
+                    if (response.IsSuccessStatusCode) return true;
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Error: ", ex.Message);
+                }
+            }
+            return false;
         }
     }
 }
