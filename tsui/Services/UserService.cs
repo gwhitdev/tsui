@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
-using System.Net;
-//using System.Text.Json;
-using Newtonsoft.Json.Serialization;
 using tsui.DataModels;
 using tsui.Interfaces;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using tsui.Library;
 using static tsui.Library.ServiceRequestHelpers;
 using System.Net.Http.Headers;
 
@@ -27,68 +22,97 @@ namespace tsui.Services
             _timesharerapiClientFactory = userClientFactory;
         }
 
-        
-        public async Task<List<UserDataModel>> GetAllUsersAsync()
+        private static List<UserDataModel> ConvertDataStringToUsersList(string toConvert)
         {
-            var request = CreateGetRequestObject("users");
-            var client = _timesharerapiClientFactory.CreateClient("timesharerapiServiceClient");
-            var response = await client.SendAsync(request);
+            JArray convertedResult = JArray.Parse(toConvert);
+            IList<JToken> results = convertedResult[0]["data"].Children().ToList();
 
             List<UserDataModel> usersList = new();
 
-            if (response.IsSuccessStatusCode)
+            foreach (JToken u in results)
             {
-                try
-                {
-                    var result = await response.Content.ReadAsStringAsync();
-                    JArray convertedResult = JArray.Parse(result);
-                    IList<JToken> results = convertedResult[0]["data"].Children().ToList();
-
-                    foreach (JToken u in results)
-                    {
-                        UserDataModel user = u.ToObject<UserDataModel>();
-                        usersList.Add(user);
-                    }
-                }
-                catch(Exception ex)
-                {
-                    _logger.LogInformation(ex.Message);
-                }
-                
+                UserDataModel user = u.ToObject<UserDataModel>();
+                usersList.Add(user);
             }
-            return usersList ;
+
+            return usersList;
         }
+        private static List<UserDataModel> ReturnReceivedUsersList(string stringOfUsers)
+        {
+            List<UserDataModel> usersList = ConvertDataStringToUsersList(stringOfUsers);
+            return usersList;
+        }
+        private async Task<bool> CreateNewUserInAppDb(string accessToken, string userId)
+        {
+            bool userCreated = true;
+            bool userNotCreated = false;
+
+            try
+            {
+                var request = CreatePostRequestObject($"users/{userId}");
+                var client = _timesharerapiClientFactory.CreateClient("timesharerapiServiceClient");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                var response = await client.SendAsync(request);
+                if (response.IsSuccessStatusCode) return userCreated;
+                return userNotCreated;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error: ", ex.Message);
+            }
+            return userNotCreated;
+        }
+
+        public async Task<List<UserDataModel>> GetAllUsersAsync()
+        {
+            try
+            {
+                var request = CreateGetRequestObject("users");
+                var client = _timesharerapiClientFactory.CreateClient("timesharerapiServiceClient");
+                var response = await client.SendAsync(request);
+                var result = await response.Content.ReadAsStringAsync();
+                var listOfUsers = ReturnReceivedUsersList(result);
+                return listOfUsers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+            throw new Exception();
+        }
+
+       
 
         public async Task<List<UserDataModel>> GetUserAsync(string userId)
         {
-            var request = CreateGetRequestObject($"users/{userId}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"users/{userId}");
             var client = _timesharerapiClientFactory.CreateClient("timesharerapiServiceClient");
             var response = await client.SendAsync(request);
 
+            if (!response.IsSuccessStatusCode) throw new Exception();
             List<UserDataModel> userList = new();
-
-            if(response.IsSuccessStatusCode)
+            try
             {
-                try
-                {
-                    var result = await response.Content.ReadAsStringAsync();
-                    JArray convertedResult = JArray.Parse(result);
-                    IList<JToken> results = convertedResult[0]["data"].Children().ToList();
-                    foreach(JToken u in results)
-                    {
-                        UserDataModel user = u.ToObject<UserDataModel>();
-                        userList.Add(user);
-                    }
-                }
-                catch(Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                }
-            }
+                var result = await response.Content.ReadAsStringAsync();
+                JArray convertedResult = JArray.Parse(result);
+                IList<JToken> results = convertedResult[0]["data"].Children().ToList();
+                
 
+                foreach (JToken u in results)
+                {
+                    UserDataModel user = u.ToObject<UserDataModel>();
+                    userList.Add(user);
+                }
+                return userList;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
             return userList;
         }
-        private async Task<bool> CheckIfUserExists(string userId)
+
+        public async Task<bool> CheckIfUserExists(string userId)
         {
             List<UserDataModel> exists = new();
             try
@@ -103,27 +127,19 @@ namespace tsui.Services
             return false;
         }
 
+        
         public async Task<bool> CreateUser(string accessToken, string userId)
         {
+            bool appDbUserCreated = true;
+            bool appDbUserNotCreated = false;
+
             bool exists = await CheckIfUserExists(userId);
-            
             if (!exists)
             {
-                try
-                {
-                    var request = CreatePostRequestObject($"users/{userId}");
-                    var client = _timesharerapiClientFactory.CreateClient("timesharerapiServiceClient");
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                    var response = await client.SendAsync(request);
-                    if (response.IsSuccessStatusCode) return true;
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Error: ", ex.Message);
-                }
+                var succesfulAppUserCreation = await CreateNewUserInAppDb(accessToken, userId);
+                if (succesfulAppUserCreation) return appDbUserCreated;
             }
-            return false;
+            return appDbUserNotCreated;
         }
     }
 }

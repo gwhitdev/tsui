@@ -45,6 +45,7 @@
     <None Include="wwwroot\lib\jquery\dist\jquery.min.map" />
     <Folder Include="Services\" />
     <Folder Include="Views\Users\" />
+    <Folder Include="Views\Volunteers\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\tsui.Library\tsui.Library.csproj">

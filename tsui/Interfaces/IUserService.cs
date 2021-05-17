@@ -10,7 +10,7 @@ namespace tsui.Interfaces
         public Task<List<UserDataModel>> GetAllUsersAsync();
         public Task<List<UserDataModel>> GetUserAsync(string userId);
         public Task<bool> CreateUser(string accessToken, string userId);
-        //private abstract Task<bool> CheckIfUserExists(string userId);
+        public Task<bool> CheckIfUserExists(string userId);
         //public bool UpdateUser();
         //public bool DeleteUser();
     }

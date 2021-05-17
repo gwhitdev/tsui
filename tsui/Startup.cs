@@ -115,6 +115,7 @@ namespace tsui
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 });
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IVolunteerService, VolunteerService>();
             services.AddControllersWithViews();
         }
 
